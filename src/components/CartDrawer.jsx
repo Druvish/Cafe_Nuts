@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, Trash2, ShoppingBag, Loader2, CheckCircle2, ClipboardCheck, ArrowLeft, CalendarDays } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function CartDrawer() {
   const {
@@ -17,12 +17,15 @@ export default function CartDrawer() {
     addOrder
   } = useCart();
 
+  const navigate = useNavigate();
+
   // Simplified Checkout Wizard Steps: 'cart' | 'details' | 'confirmed'
   const [step, setStep] = useState('cart');
 
   // Customer Info State
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [pickupTime, setPickupTime] = useState('As soon as possible (15-20 Mins)');
 
   // Loading/Checkout confirmation states
@@ -65,6 +68,7 @@ export default function CartDrawer() {
         pickupCode,
         customerName,
         customerPhone,
+        customerEmail,
         pickupTime,
         items: cartItems.map(item => ({
           title: item.title,
@@ -230,6 +234,18 @@ export default function CartDrawer() {
                         </div>
 
                         <div className="flex flex-col">
+                          <label className="text-xs font-semibold text-cafe-brown-light mb-1.5 uppercase tracking-wide">Email Address</label>
+                          <input
+                            type="email"
+                            required
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                            placeholder="john@example.com"
+                            className="px-4 py-3 rounded-xl border border-cafe-cream-dark bg-white/45 text-sm focus:outline-none focus:ring-2 focus:ring-cafe-terracotta/40 focus:border-cafe-terracotta"
+                          />
+                        </div>
+
+                        <div className="flex flex-col">
                           <label className="text-xs font-semibold text-cafe-brown-light mb-1.5 uppercase tracking-wide">Pickup Time</label>
                           <div className="relative">
                             <select
@@ -334,12 +350,26 @@ export default function CartDrawer() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={handleCloseReceipt}
-                          className="w-full py-3.5 px-6 rounded-xl bg-cafe-terracotta hover:bg-cafe-terracotta-dark text-cafe-cream-light font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg active:translate-y-0.5 cursor-pointer"
-                        >
-                          Close & Done
-                        </button>
+                        <div className="flex flex-col gap-3">
+                          <button
+                            onClick={() => {
+                              const orderId = currentOrderId;
+                              clearCart();
+                              setCartOpen(false);
+                              setStep('cart');
+                              navigate(`/track/${orderId}`);
+                            }}
+                            className="w-full py-3.5 px-6 rounded-xl bg-cafe-terracotta hover:bg-cafe-terracotta-dark text-cafe-cream-light font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg active:translate-y-0.5 cursor-pointer text-center"
+                          >
+                            Track Live Order
+                          </button>
+                          <button
+                            onClick={handleCloseReceipt}
+                            className="w-full py-2.5 px-6 rounded-xl bg-cafe-cream-medium/80 hover:bg-cafe-cream-medium text-cafe-brown-dark font-medium text-xs transition-all duration-300 cursor-pointer text-center"
+                          >
+                            Close & Done (Go Back)
+                          </button>
+                        </div>
                       </motion.div>
                     )}
                   </div>

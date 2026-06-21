@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, RotateCcw, ShieldAlert, Award, Clock, DollarSign, ListOrdered, Utensils, CheckSquare, ArrowLeft, Lock, LogOut } from 'lucide-react';
+import { Coffee, RotateCcw, ShieldAlert, Award, Clock, DollarSign, ListOrdered, Utensils, CheckSquare, ArrowLeft, Lock, LogOut, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ChefDashboard() {
@@ -12,6 +12,42 @@ export default function ChefDashboard() {
   );
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
+  const [mobileColumnTab, setMobileColumnTab] = useState('new'); // 'new' | 'preparing' | 'ready'
+
+  const [timeTick, setTimeTick] = useState(0);
+
+  // Trigger re-render every 30 seconds to update elapsed timers
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeTick((prev) => prev + 1);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getElapsedTime = (timestamp) => {
+    const placedTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - placedTime;
+    return Math.floor(diffMs / 60000); // in minutes
+  };
+
+  const getCardStyle = (order) => {
+    if (order.status === 'Pending' || order.status === 'Preparing') {
+      const elapsed = getElapsedTime(order.timestamp);
+      if (elapsed >= 15) {
+        return 'border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.25)] animate-pulse';
+      }
+      if (elapsed >= 10) {
+        return 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]';
+      }
+    }
+    // Default borders
+    if (order.status === 'Preparing') return 'border-amber-500/20';
+    if (order.status === 'Ready') return 'border-emerald-500/20';
+    return 'border-stone-800';
+  };
+
+
 
   const prevOrderCountRef = useRef(orders.length);
 
@@ -295,29 +331,29 @@ export default function ChefDashboard() {
     <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950">
       
       {/* KDS Header Banner */}
-      <header className="bg-stone-900 border-b border-stone-850 py-4 px-6 flex items-center justify-between shadow-md">
-        <div className="flex items-center space-x-3">
-          <Link to="/" className="flex items-center space-x-2 text-stone-300 hover:text-amber-500 transition-colors mr-2">
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">Storefront</span>
+      <header className="bg-stone-900 border-b border-stone-850 py-3 px-4 sm:px-6 flex items-center justify-between shadow-md">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 text-stone-300 hover:text-amber-500 transition-colors mr-1 sm:mr-2">
+            <ArrowLeft className="w-4 h-4 sm:w-5 h-5" />
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider hidden sm:inline">Storefront</span>
           </Link>
-          <div className="p-2.5 rounded-xl bg-amber-500 text-stone-950">
-            <Coffee className="w-5 h-5" />
+          <div className="p-2 rounded-lg bg-amber-500 text-stone-950 hidden sm:block">
+            <Coffee className="w-4.5 h-4.5 sm:w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-serif text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-              KITCHEN TERMINAL <span className="text-xs bg-amber-500/10 border border-amber-500/20 text-amber-500 px-2 py-0.5 rounded-md font-sans">LIVE</span>
+            <h1 className="font-serif text-[13px] sm:text-base md:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
+              KITCHEN TERMINAL <span className="text-[9px] sm:text-xs bg-amber-500/10 border border-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded-md font-sans font-bold">LIVE</span>
             </h1>
-            <p className="text-[10px] sm:text-xs text-stone-400">Café Aroma KDS Display (Chinchwad)</p>
+            <p className="text-[9px] sm:text-xs text-stone-400 hidden min-[380px]:block">Café Aroma KDS Display (Chinchwad)</p>
           </div>
         </div>
 
         {/* Tab Controls / Clear Action */}
-        <div className="flex items-center space-x-4">
-          <div className="bg-stone-950 p-1 rounded-lg border border-stone-850 flex space-x-1">
+        <div className="flex items-center space-x-1.5 sm:space-x-3">
+          <div className="bg-stone-950 p-1 rounded-lg border border-stone-850 flex space-x-0.5 sm:space-x-1">
             <button
               onClick={() => setActiveTab('kds')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2 sm:px-3 py-1.5 rounded-md text-[10px] sm:text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'kds' ? 'bg-amber-500 text-stone-950' : 'text-stone-400 hover:text-stone-100'
               }`}
             >
@@ -325,7 +361,7 @@ export default function ChefDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2 sm:px-3 py-1.5 rounded-md text-[10px] sm:text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'history' ? 'bg-amber-500 text-stone-950' : 'text-stone-400 hover:text-stone-100'
               }`}
             >
@@ -339,57 +375,57 @@ export default function ChefDashboard() {
                 clearAllOrders();
               }
             }}
-            className="p-2 rounded-lg bg-stone-850 hover:bg-red-950/40 text-stone-400 hover:text-red-400 border border-stone-800 hover:border-red-900/30 transition-all cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-lg bg-stone-850 hover:bg-red-950/40 text-stone-400 hover:text-red-400 border border-stone-800 hover:border-red-900/30 transition-all cursor-pointer"
             title="Reset Board"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5 sm:w-4 h-4" />
           </button>
 
           <button
             onClick={handleLogout}
-            className="p-2 rounded-lg bg-stone-850 hover:bg-stone-800 text-stone-400 hover:text-amber-500 border border-stone-800 hover:border-amber-500/30 transition-all cursor-pointer flex items-center space-x-1.5"
+            className="p-1.5 sm:p-2 rounded-lg bg-stone-850 hover:bg-stone-800 text-stone-400 hover:text-amber-500 border border-stone-800 hover:border-amber-500/30 transition-all cursor-pointer flex items-center space-x-1 sm:space-x-1.5"
             title="Log Out"
           >
-            <LogOut className="w-4 h-4" />
-            <span className="text-[10px] font-bold uppercase tracking-wider hidden md:inline">Log Out</span>
+            <LogOut className="w-3.5 h-3.5 sm:w-4 h-4" />
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider hidden md:inline">Log Out</span>
           </button>
         </div>
       </header>
 
       {/* Analytics Insight Bar */}
-      <section className="bg-stone-900/40 border-b border-stone-900 p-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+      <section className="bg-stone-900/40 border-b border-stone-900 p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Revenue */}
-          <div className="bg-stone-900 border border-stone-850 p-4 rounded-xl flex items-center space-x-3.5">
-            <div className="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-500"><DollarSign className="w-5 h-5" /></div>
+          <div className="bg-stone-900 border border-stone-850 p-3 sm:p-4 rounded-xl flex items-center space-x-2.5 sm:space-x-3.5">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-emerald-500/10 text-emerald-500"><DollarSign className="w-4 h-4 sm:w-5 h-5" /></div>
             <div>
-              <span className="text-[10px] text-stone-400 uppercase tracking-widest block font-semibold">Served Sales</span>
-              <span className="text-lg font-bold text-stone-100">₹{totalRevenue}</span>
+              <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase tracking-widest block font-semibold">Served Sales</span>
+              <span className="text-sm sm:text-lg font-bold text-stone-100">₹{totalRevenue}</span>
             </div>
           </div>
 
           {/* Active Orders */}
-          <div className="bg-stone-900 border border-stone-850 p-4 rounded-xl flex items-center space-x-3.5">
-            <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-500"><ListOrdered className="w-5 h-5" /></div>
+          <div className="bg-stone-900 border border-stone-850 p-3 sm:p-4 rounded-xl flex items-center space-x-2.5 sm:space-x-3.5">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-amber-500/10 text-amber-500"><ListOrdered className="w-4 h-4 sm:w-5 h-5" /></div>
             <div>
-              <span className="text-[10px] text-stone-400 uppercase tracking-widest block font-semibold">Active Orders</span>
-              <span className="text-lg font-bold text-stone-100">{activeCount} Queued</span>
+              <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase tracking-widest block font-semibold">Active Orders</span>
+              <span className="text-sm sm:text-lg font-bold text-stone-100">{activeCount} Queued</span>
             </div>
           </div>
 
           {/* Popular Item */}
-          <div className="bg-stone-900 border border-stone-850 p-4 rounded-xl flex items-center space-x-3.5 col-span-1">
-            <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-500"><Utensils className="w-5 h-5" /></div>
+          <div className="bg-stone-900 border border-stone-850 p-3 sm:p-4 rounded-xl flex items-center space-x-2.5 sm:space-x-3.5 col-span-1">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-blue-500/10 text-blue-500"><Utensils className="w-4 h-4 sm:w-5 h-5" /></div>
             <div className="min-w-0">
-              <span className="text-[10px] text-stone-400 uppercase tracking-widest block font-semibold">Popular Item</span>
-              <span className="text-sm font-bold text-stone-100 block truncate">{popularItem}</span>
+              <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase tracking-widest block font-semibold">Popular Item</span>
+              <span className="text-xs sm:text-sm font-bold text-stone-100 block truncate">{popularItem}</span>
             </div>
           </div>
 
           {/* Sound alert instructions */}
-          <div className="bg-stone-900 border border-stone-850 p-4 rounded-xl flex items-center space-x-3.5 col-span-1">
-            <div className="p-2.5 rounded-lg bg-amber-500/5 text-amber-500/80"><Award className="w-5 h-5" /></div>
-            <div className="text-[11px] leading-snug text-stone-400">
+          <div className="bg-stone-900 border border-stone-850 p-3 sm:p-4 rounded-xl flex items-center space-x-2.5 sm:space-x-3.5 col-span-1">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-amber-500/5 text-amber-500/80"><Award className="w-4 h-4 sm:w-5 h-5" /></div>
+            <div className="text-[10px] sm:text-[11px] leading-snug text-stone-400">
               <span className="font-semibold text-stone-200 block">Tab Sync Alert</span>
               Place customer orders in another tab to trigger audio bells here.
             </div>
@@ -398,14 +434,67 @@ export default function ChefDashboard() {
       </section>
 
       {/* Main Board Display */}
-      <main className="flex-grow p-6">
+      <main className="flex-grow p-4 sm:p-6">
         <div className="max-w-7xl mx-auto h-full">
           {activeTab === 'kds' ? (
             /* ACTIVE BOARD VIEW */
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full items-start">
+            <div className="space-y-4 h-full">
               
-              {/* COL 1: NEW PENDING ORDERS */}
-              <div className="bg-stone-900 rounded-2xl border border-stone-850 flex flex-col max-h-[75vh]">
+              {/* Mobile Column Tab Switcher (Visible only on mobile/tablet < 768px) */}
+              <div className="md:hidden bg-stone-900 p-1.5 rounded-xl border border-stone-850 flex space-x-1 w-full shadow-md font-sans">
+                <button
+                  onClick={() => setMobileColumnTab('new')}
+                  className={`flex-grow py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    mobileColumnTab === 'new' 
+                      ? 'bg-amber-500 text-stone-950 shadow-sm' 
+                      : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  <span>New</span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+                    mobileColumnTab === 'new' ? 'bg-stone-950/20 text-stone-950' : 'bg-stone-950 text-stone-500'
+                  }`}>
+                    {pendingOrders.length}
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => setMobileColumnTab('preparing')}
+                  className={`flex-grow py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    mobileColumnTab === 'preparing' 
+                      ? 'bg-amber-500 text-stone-950 shadow-sm' 
+                      : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  <span>Preparing</span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+                    mobileColumnTab === 'preparing' ? 'bg-stone-950/20 text-stone-950' : 'bg-stone-950 text-stone-500'
+                  }`}>
+                    {preparingOrders.length}
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => setMobileColumnTab('ready')}
+                  className={`flex-grow py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    mobileColumnTab === 'ready' 
+                      ? 'bg-amber-500 text-stone-950 shadow-sm' 
+                      : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  <span>Ready</span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+                    mobileColumnTab === 'ready' ? 'bg-stone-950/20 text-stone-950' : 'bg-stone-950 text-stone-500'
+                  }`}>
+                    {readyOrders.length}
+                  </span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full items-start">
+                
+                {/* COL 1: NEW PENDING ORDERS */}
+                <div className={`bg-stone-900 rounded-2xl border border-stone-850 flex flex-col max-h-[75vh] ${mobileColumnTab === 'new' ? 'flex' : 'hidden md:flex'}`}>
                 <div className="p-4 border-b border-stone-850 flex items-center justify-between bg-stone-900/60 sticky top-0 z-10 rounded-t-2xl">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
@@ -428,13 +517,22 @@ export default function ChefDashboard() {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="bg-stone-950 border border-stone-800 p-4 rounded-xl space-y-3.5"
+                          className={`bg-stone-950 border p-4 rounded-xl space-y-3.5 transition-all duration-300 ${getCardStyle(o)}`}
                         >
                           {/* Invoice / code */}
                           <div className="flex justify-between items-start">
                             <div>
                               <span className="font-bold text-stone-200 text-sm block">{o.orderId}</span>
-                              <span className="text-[10px] text-amber-500 font-bold">{o.pickupCode}</span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] text-amber-500 font-bold">{o.pickupCode}</span>
+                                <span className="text-stone-700 text-[10px]">•</span>
+                                <span className={`text-[10px] font-mono font-medium flex items-center gap-0.5 ${
+                                  getElapsedTime(o.timestamp) >= 15 ? 'text-red-400 font-bold' : getElapsedTime(o.timestamp) >= 10 ? 'text-amber-400 font-bold' : 'text-stone-500'
+                                }`}>
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {getElapsedTime(o.timestamp)}m ago
+                                </span>
+                              </div>
                             </div>
                             <div className="text-right text-[10px] text-stone-400 font-mono">
                               <div>{o.pickupTime}</div>
@@ -466,7 +564,7 @@ export default function ChefDashboard() {
               </div>
 
               {/* COL 2: IN PREPARATION */}
-              <div className="bg-stone-900 rounded-2xl border border-stone-850 flex flex-col max-h-[75vh]">
+              <div className={`bg-stone-900 rounded-2xl border border-stone-850 flex flex-col max-h-[75vh] ${mobileColumnTab === 'preparing' ? 'flex' : 'hidden md:flex'}`}>
                 <div className="p-4 border-b border-stone-850 flex items-center justify-between bg-stone-900/60 sticky top-0 z-10 rounded-t-2xl">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-spin" />
@@ -489,12 +587,21 @@ export default function ChefDashboard() {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="bg-stone-950 border border-amber-500/20 p-4 rounded-xl space-y-3.5"
+                          className={`bg-stone-950 border p-4 rounded-xl space-y-3.5 transition-all duration-300 ${getCardStyle(o)}`}
                         >
                           <div className="flex justify-between items-start">
                             <div>
                               <span className="font-bold text-stone-200 text-sm block">{o.orderId}</span>
-                              <span className="text-[10px] text-amber-500 font-bold">{o.pickupCode}</span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] text-amber-500 font-bold">{o.pickupCode}</span>
+                                <span className="text-stone-700 text-[10px]">•</span>
+                                <span className={`text-[10px] font-mono font-medium flex items-center gap-0.5 ${
+                                  getElapsedTime(o.timestamp) >= 15 ? 'text-red-400 font-bold' : getElapsedTime(o.timestamp) >= 10 ? 'text-amber-400 font-bold' : 'text-stone-500'
+                                }`}>
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {getElapsedTime(o.timestamp)}m ago
+                                </span>
+                              </div>
                             </div>
                             <div className="text-right text-[10px] text-stone-400 font-mono">
                               <div>{o.pickupTime}</div>
@@ -524,7 +631,7 @@ export default function ChefDashboard() {
               </div>
 
               {/* COL 3: READY FOR PICKUP */}
-              <div className="bg-stone-900 rounded-2xl border border-stone-850 flex flex-col max-h-[75vh]">
+              <div className={`bg-stone-900 rounded-2xl border border-stone-850 flex flex-col max-h-[75vh] ${mobileColumnTab === 'ready' ? 'flex' : 'hidden md:flex'}`}>
                 <div className="p-4 border-b border-stone-850 flex items-center justify-between bg-stone-900/60 sticky top-0 z-10 rounded-t-2xl">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -547,12 +654,19 @@ export default function ChefDashboard() {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="bg-stone-950 border border-emerald-500/20 p-4 rounded-xl space-y-3.5"
+                          className={`bg-stone-950 border p-4 rounded-xl space-y-3.5 transition-all duration-300 ${getCardStyle(o)}`}
                         >
                           <div className="flex justify-between items-start">
                             <div>
                               <span className="font-bold text-stone-200 text-sm block">{o.orderId}</span>
-                              <span className="text-xs bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20 px-2 py-0.5 rounded-md mt-1 inline-block">{o.pickupCode}</span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-xs bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20 px-2 py-0.5 rounded-md">{o.pickupCode}</span>
+                                <span className="text-stone-700 text-[10px]">•</span>
+                                <span className="text-[10px] font-mono font-medium text-stone-500 flex items-center gap-0.5">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {getElapsedTime(o.timestamp)}m ago
+                                </span>
+                              </div>
                             </div>
                             <div className="text-right text-[10px] text-stone-400 font-mono">
                               <div>{o.pickupTime}</div>
@@ -568,12 +682,24 @@ export default function ChefDashboard() {
                             ))}
                           </div>
 
-                          <button
-                            onClick={() => updateOrderStatus(o.orderId, 'Served')}
-                            className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-stone-950 rounded-lg text-xs font-bold transition-all cursor-pointer border border-emerald-400"
-                          >
-                            Serve / Hand Over
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => updateOrderStatus(o.orderId, 'Served')}
+                              className="flex-grow py-2 bg-emerald-500 hover:bg-emerald-400 text-stone-950 rounded-lg text-xs font-bold transition-all cursor-pointer border border-emerald-400"
+                            >
+                              Serve / Hand Over
+                            </button>
+                            
+                            <a
+                              href={`https://wa.me/${o.customerPhone.replace(/\D/g, '').length === 10 ? `91${o.customerPhone.replace(/\D/g, '')}` : o.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${o.customerName}, your Cafe Aroma order ${o.orderId} is READY for pickup! Show pickup code ${o.pickupCode} at the counter.`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3.5 py-2 bg-stone-850 hover:bg-stone-800 text-emerald-400 hover:text-emerald-300 rounded-lg text-xs font-bold transition-all border border-stone-800 flex items-center justify-center cursor-pointer"
+                              title="Send WhatsApp Notification"
+                            >
+                              <MessageSquare className="w-4.5 h-4.5" />
+                            </a>
+                          </div>
                         </motion.div>
                       ))
                     )}
@@ -581,6 +707,7 @@ export default function ChefDashboard() {
                 </div>
               </div>
 
+              </div>
             </div>
           ) : (
             /* ARCHIVED / SERVED HISTORY VIEW */
@@ -643,6 +770,9 @@ export default function ChefDashboard() {
           )}
         </div>
       </main>
+
+      {/* Footer padding */}
+      <div className="h-6" />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Menu from './pages/Menu';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import ChefDashboard from './pages/ChefDashboard';
+import OrderTracker from './pages/OrderTracker';
 import { CartProvider } from './context/CartContext';
 import CartDrawer from './components/CartDrawer';
 
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="menu" element={<Menu />} />
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="track/:orderId" element={<OrderTracker />} />
             {/* Catch-all redirect to home */}
             <Route path="*" element={<Home />} />
           </Route>

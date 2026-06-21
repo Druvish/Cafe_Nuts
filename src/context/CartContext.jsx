@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../supabase';
+import { sendEmailNotification } from '../services/notificationService';
 
 const CartContext = createContext();
 
@@ -9,6 +10,7 @@ const mapDBToJS = (row) => ({
   pickupCode: row.pickup_code,
   customerName: row.customer_name,
   customerPhone: row.customer_phone,
+  customerEmail: row.customer_email || '',
   pickupTime: row.pickup_time,
   items: row.items,
   subtotal: row.subtotal,
@@ -26,6 +28,7 @@ const mapJSToDB = (order) => ({
   pickup_code: order.pickupCode,
   customer_name: order.customerName,
   customer_phone: order.customerPhone,
+  customer_email: order.customerEmail || '',
   pickup_time: order.pickupTime,
   items: order.items,
   subtotal: order.subtotal,
@@ -151,16 +154,28 @@ export function CartProvider({ children }) {
     const { error } = await supabase.from('orders').insert([dbPayload]);
     if (error) {
       console.error('Error adding order to Supabase:', error);
+      return;
     }
+
+    // Trigger confirmation alerts
+    sendEmailNotification(orderDetails, 'confirmed');
   };
 
   const updateOrderStatus = async (orderId, newStatus) => {
+    const order = orders.find((o) => o.orderId === orderId);
+
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus })
       .eq('order_id', orderId);
     if (error) {
       console.error('Error updating order status in Supabase:', error);
+      return;
+    }
+
+    // Trigger alerts if status becomes Ready
+    if (newStatus === 'Ready' && order) {
+      sendEmailNotification({ ...order, status: newStatus }, 'ready');
     }
   };
 
